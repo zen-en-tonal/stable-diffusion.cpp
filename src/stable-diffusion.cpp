@@ -2353,7 +2353,7 @@ public:
                 control_net->free_control_ctx();
                 control_net->free_compute_buffer();
             }
-            diffusion_model->free_compute_buffer();
+            work_diffusion_model->free_compute_buffer();
             return NULL;
         }
 
@@ -3197,6 +3197,7 @@ sd_image_t* generate_image_internal(sd_ctx_t* sd_ctx,
         }
     }
 
+    sd_ctx->sd->diffusion_model->free_compute_buffer();
     if (sd_ctx->sd->free_params_immediately) {
         sd_ctx->sd->diffusion_model->free_params_buffer();
     }
@@ -3942,6 +3943,7 @@ SD_API sd_image_t* generate_video(sd_ctx_t* sd_ctx, const sd_vid_gen_params_t* s
 
         int64_t sampling_end = ggml_time_ms();
         LOG_INFO("sampling(high noise) completed, taking %.2fs", (sampling_end - sampling_start) * 1.0f / 1000);
+        sd_ctx->sd->high_noise_diffusion_model->free_compute_buffer();
         if (sd_ctx->sd->free_params_immediately) {
             sd_ctx->sd->high_noise_diffusion_model->free_params_buffer();
         }
@@ -3979,6 +3981,7 @@ SD_API sd_image_t* generate_video(sd_ctx_t* sd_ctx, const sd_vid_gen_params_t* s
 
         int64_t sampling_end = ggml_time_ms();
         LOG_INFO("sampling completed, taking %.2fs", (sampling_end - sampling_start) * 1.0f / 1000);
+        sd_ctx->sd->diffusion_model->free_compute_buffer();
         if (sd_ctx->sd->free_params_immediately) {
             sd_ctx->sd->diffusion_model->free_params_buffer();
         }

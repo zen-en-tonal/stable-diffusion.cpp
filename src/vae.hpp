@@ -168,9 +168,20 @@ public:
             sd_tiling_non_square(x, result, scale_factor, tile_size_x, tile_size_y, tile_overlap, circular_x, circular_y, on_tiling, silent);
         } else {
             if (!_compute(n_threads, x, true, &result, work_ctx)) {
-                LOG_ERROR("Failed to decode latetnts");
+                LOG_WARN("Non-tiled VAE decode failed (possibly out of VRAM), falling back to tiled decode");
                 free_compute_buffer();
-                return nullptr;
+                float tile_overlap;
+                int tile_size_x, tile_size_y;
+                sd_tiling_params_t fallback_tiling = tiling_params;
+                fallback_tiling.enabled            = true;
+                get_tile_sizes(tile_size_x, tile_size_y, tile_overlap, fallback_tiling, x->ne[0], x->ne[1]);
+                if (!silent) {
+                    LOG_DEBUG("VAE tiled fallback tile size: %dx%d", tile_size_x, tile_size_y);
+                }
+                auto on_tiling = [&](ggml_tensor* in, ggml_tensor* out, bool init) {
+                    return _compute(n_threads, in, true, &out, nullptr);
+                };
+                sd_tiling_non_square(x, result, scale_factor, tile_size_x, tile_size_y, tile_overlap, circular_x, circular_y, on_tiling, silent);
             }
         }
         free_compute_buffer();

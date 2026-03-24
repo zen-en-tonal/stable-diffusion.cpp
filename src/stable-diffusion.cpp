@@ -1128,19 +1128,21 @@ public:
                 if (clip_vision) {
                     clip_vision->set_flash_attention_enabled(true);
                 }
+            }
+
+            if (sd_ctx_params->flash_attn || sd_ctx_params->diffusion_flash_attn) {
+                LOG_INFO("Using flash attention in the diffusion model and VAE");
+                diffusion_model->set_flash_attention_enabled(true);
+                if (high_noise_diffusion_model) {
+                    high_noise_diffusion_model->set_flash_attention_enabled(true);
+                }
+                // Enable flash attention for the VAE to avoid quadratic O(L^2) attention memory
+                // at large resolutions (e.g. 1536x1536+), where the kq matrix alone can exceed 5 GB.
                 if (first_stage_model) {
                     first_stage_model->set_flash_attention_enabled(true);
                 }
                 if (preview_vae) {
                     preview_vae->set_flash_attention_enabled(true);
-                }
-            }
-
-            if (sd_ctx_params->flash_attn || sd_ctx_params->diffusion_flash_attn) {
-                LOG_INFO("Using flash attention in the diffusion model");
-                diffusion_model->set_flash_attention_enabled(true);
-                if (high_noise_diffusion_model) {
-                    high_noise_diffusion_model->set_flash_attention_enabled(true);
                 }
             }
 

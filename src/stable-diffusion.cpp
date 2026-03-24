@@ -153,8 +153,8 @@ static void init_easycache_runtime(SampleCacheRuntime& runtime,
                                    SDVersion version,
                                    const sd_cache_params_t& cache_params,
                                    Denoiser* denoiser) {
-    if (!sd_version_is_dit(version)) {
-        LOG_WARN("EasyCache requested but not supported for this model type");
+    if (!sd_version_is_dit(version) && !sd_version_is_unet(version)) {
+        LOG_WARN("EasyCache requested but not supported for this model type (only DiT and UNet models)");
         return;
     }
 

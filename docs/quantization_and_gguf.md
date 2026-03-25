@@ -3,6 +3,7 @@
 You can specify the model weight type using the `--type` parameter. The weights are automatically converted when loading the model.
 
 - `f16` for 16-bit floating-point
+- `bf16` for 16-bit brain floating-point
 - `f32` for 32-bit floating-point
 - `q8_0` for 8-bit integer quantization
 - `q5_0` or `q5_1` for 5-bit integer quantization

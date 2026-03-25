@@ -242,6 +242,8 @@ void convert_tensor(void* src,
     } else if (src_type == GGML_TYPE_F32) {
         if (dst_type == GGML_TYPE_F16) {
             ggml_fp32_to_fp16_row((float*)src, (ggml_fp16_t*)dst, n);
+        } else if (dst_type == GGML_TYPE_BF16) {
+            ggml_fp32_to_bf16_row((float*)src, (ggml_bf16_t*)dst, n);
         } else {
             std::vector<float> imatrix(n_per_row, 1.0f);  // dummy importance matrix
             const float* im = imatrix.data();
@@ -250,6 +252,8 @@ void convert_tensor(void* src,
     } else if (dst_type == GGML_TYPE_F32) {
         if (src_type == GGML_TYPE_F16) {
             ggml_fp16_to_fp32_row((ggml_fp16_t*)src, (float*)dst, n);
+        } else if (src_type == GGML_TYPE_BF16) {
+            ggml_bf16_to_fp32_row((ggml_bf16_t*)src, (float*)dst, n);
         } else {
             auto qtype = ggml_get_type_traits(src_type);
             if (qtype->to_float == nullptr) {
@@ -259,19 +263,26 @@ void convert_tensor(void* src,
             qtype->to_float(src, (float*)dst, n);
         }
     } else {
-        // src_type == GGML_TYPE_F16 => dst_type is quantized
-        // src_type is quantized => dst_type == GGML_TYPE_F16 or dst_type is quantized
-        auto qtype = ggml_get_type_traits(src_type);
-        if (qtype->to_float == nullptr) {
-            throw std::runtime_error(sd_format("type %s unsupported for integer quantization: no dequantization available",
-                                               ggml_type_name(src_type)));
-        }
+        // General path: convert src to F32 first, then convert F32 to dst
         std::vector<char> buf;
         buf.resize(sizeof(float) * n);
         char* src_data_f32 = buf.data();
-        qtype->to_float(src, (float*)src_data_f32, n);
+        if (src_type == GGML_TYPE_F16) {
+            ggml_fp16_to_fp32_row((ggml_fp16_t*)src, (float*)src_data_f32, n);
+        } else if (src_type == GGML_TYPE_BF16) {
+            ggml_bf16_to_fp32_row((ggml_bf16_t*)src, (float*)src_data_f32, n);
+        } else {
+            auto qtype = ggml_get_type_traits(src_type);
+            if (qtype->to_float == nullptr) {
+                throw std::runtime_error(sd_format("type %s unsupported for integer quantization: no dequantization available",
+                                                   ggml_type_name(src_type)));
+            }
+            qtype->to_float(src, (float*)src_data_f32, n);
+        }
         if (dst_type == GGML_TYPE_F16) {
             ggml_fp32_to_fp16_row((float*)src_data_f32, (ggml_fp16_t*)dst, n);
+        } else if (dst_type == GGML_TYPE_BF16) {
+            ggml_fp32_to_bf16_row((float*)src_data_f32, (ggml_bf16_t*)dst, n);
         } else {
             std::vector<float> imatrix(n_per_row, 1.0f);  // dummy importance matrix
             const float* im = imatrix.data();

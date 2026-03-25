@@ -2355,7 +2355,7 @@ protected:
 
     void init_params(ggml_context* ctx, const String2TensorStorage& tensor_storage_map, const std::string prefix = "") override {
         this->prefix         = prefix;
-        enum ggml_type wtype = GGML_TYPE_F16;
+        enum ggml_type wtype = get_type(prefix + "weight", tensor_storage_map, GGML_TYPE_F16);
         params["weight"]     = ggml_new_tensor_4d(ctx, wtype, kernel_size.second, kernel_size.first, in_channels, out_channels);
         if (bias) {
             enum ggml_type wtype = GGML_TYPE_F32;
@@ -2438,7 +2438,7 @@ protected:
 
     void init_params(ggml_context* ctx, const String2TensorStorage& tensor_storage_map, const std::string prefix = "") override {
         this->prefix         = prefix;
-        enum ggml_type wtype = GGML_TYPE_F16;
+        enum ggml_type wtype = get_type(prefix + "weight", tensor_storage_map, GGML_TYPE_F16);
         params["weight"]     = ggml_new_tensor_4d(ctx,
                                                   wtype,
                                                   std::get<2>(kernel_size),

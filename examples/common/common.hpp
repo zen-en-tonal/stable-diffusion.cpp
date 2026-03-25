@@ -773,7 +773,7 @@ struct SDContextParams {
         options.manual_options = {
             {"",
              "--type",
-             "weight type (examples: f32, f16, q4_0, q4_1, q5_0, q5_1, q8_0, q2_K, q3_K, q4_K). "
+             "weight type (examples: f32, f16, bf16, q4_0, q4_1, q5_0, q5_1, q8_0, q2_K, q3_K, q4_K). "
              "If not specified, the default is the type of the weight file",
              on_type_arg},
             {"",
